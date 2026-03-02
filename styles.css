@@ -20,6 +20,7 @@
 
 html {
     scroll-behavior: smooth;
+    overflow-x: hidden;
 }
 
 body {
@@ -163,6 +164,11 @@ body {
     align-items: center;
 }
 
+.hero-text,
+.hero-visual {
+    min-width: 0;
+}
+
 .greeting {
     color: var(--accent-secondary);
     font-size: 1.1rem;
@@ -232,11 +238,6 @@ body {
 }
 
 /* Code Block */
-.hero-visual {
-    display: flex;
-    justify-content: center;
-}
-
 .code-block {
     background: var(--bg-secondary);
     border-radius: 12px;
@@ -245,6 +246,7 @@ body {
     width: 100%;
     max-width: 500px;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    min-width: 0;
 }
 
 .code-header {
@@ -274,6 +276,7 @@ body {
     font-family: 'Fira Code', monospace;
     font-size: 0.9rem;
     line-height: 1.8;
+    white-space: pre;
 }
 
 .keyword { color: #c678dd; }
@@ -897,6 +900,8 @@ a:focus-visible, button:focus-visible {
     flex-direction: column;
     align-items: center;
     gap: 2rem;
+    min-width: 0;
+    max-width: 100%;
 }
 .avatar-card {
     display: flex;
