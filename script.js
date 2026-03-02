@@ -1,161 +1,217 @@
-// Mobile Navigation Toggle
+/* =============================================
+   Mobile Navigation Toggle
+   ============================================= */
 const navToggle = document.querySelector('.nav-toggle');
-const navLinks = document.querySelector('.nav-links');
+const navLinks  = document.querySelector('.nav-links');
 
 navToggle.addEventListener('click', () => {
     navLinks.classList.toggle('active');
     navToggle.classList.toggle('active');
+    const expanded = navToggle.classList.contains('active');
+    navToggle.setAttribute('aria-expanded', expanded);
 });
 
-// Close mobile menu when clicking on a link
+// Close mobile menu when clicking a link
 document.querySelectorAll('.nav-links a').forEach(link => {
     link.addEventListener('click', () => {
         navLinks.classList.remove('active');
         navToggle.classList.remove('active');
+        navToggle.setAttribute('aria-expanded', 'false');
     });
 });
 
-// Navbar scroll effect
-let lastScroll = 0;
+
+/* =============================================
+   Navbar Scroll Effect
+   ============================================= */
 const navbar = document.querySelector('.navbar');
 
 window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset;
-    
-    if (currentScroll > 50) {
-        navbar.style.background = 'rgba(10, 10, 15, 0.95)';
-        navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.3)';
+    if (window.pageYOffset > 50) {
+        navbar.style.background = 'rgba(10, 10, 15, 0.97)';
+        navbar.style.boxShadow  = '0 2px 20px rgba(0, 0, 0, 0.3)';
     } else {
         navbar.style.background = 'rgba(10, 10, 15, 0.9)';
-        navbar.style.boxShadow = 'none';
+        navbar.style.boxShadow  = 'none';
     }
-    
-    lastScroll = currentScroll;
-});
+}, { passive: true });
 
-// Smooth scroll for anchor links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function(e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            const offsetTop = target.offsetTop - 70;
-            window.scrollTo({
-                top: offsetTop,
-                behavior: 'smooth'
-            });
-        }
-    });
-});
 
-// Intersection Observer for scroll animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-// Observe all sections and cards
-document.querySelectorAll('section, .project-card, .skill-category, .stat-card, .contact-card').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(30px)';
-    el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(el);
-});
-
-// Typing effect for hero (optional enhancement)
-const codeElement = document.querySelector('.code-block code');
-if (codeElement) {
-    // Add subtle animation to code lines
-    const lines = codeElement.innerHTML.split('\n');
-    codeElement.innerHTML = lines.map((line, index) => 
-        `<span class="code-line" style="animation-delay: ${index * 0.1}s">${line}</span>`
-    ).join('\n');
-}
-
-// Active navigation highlighting
-const sections = document.querySelectorAll('section[id]');
+/* =============================================
+   Scroll Progress Bar
+   ============================================= */
+const scrollProgress = document.getElementById('scrollProgress');
 
 window.addEventListener('scroll', () => {
+    const scrollTop = window.pageYOffset;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const progress  = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    scrollProgress.style.width = `${progress}%`;
+}, { passive: true });
+
+
+/* =============================================
+   Back to Top Button
+   ============================================= */
+const backToTop = document.getElementById('backToTop');
+
+window.addEventListener('scroll', () => {
+    if (window.pageYOffset > 400) {
+        backToTop.classList.add('visible');
+    } else {
+        backToTop.classList.remove('visible');
+    }
+}, { passive: true });
+
+backToTop.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+
+/* =============================================
+   Active Navigation Highlighting
+   ============================================= */
+const sections   = document.querySelectorAll('section[id]');
+const navAnchors = document.querySelectorAll('.nav-links a');
+
+function updateActiveNav() {
     let current = '';
-    
-    sections.forEach(section => {
-        const sectionTop = section.offsetTop - 100;
-        const sectionHeight = section.offsetHeight;
-        
-        if (window.pageYOffset >= sectionTop && window.pageYOffset < sectionTop + sectionHeight) {
-            current = section.getAttribute('id');
-        }
-    });
-    
-    document.querySelectorAll('.nav-links a').forEach(link => {
+
+    // If at the bottom of the page, force the last section active
+    const atBottom = window.innerHeight + window.pageYOffset >= document.documentElement.scrollHeight - 10;
+    if (atBottom) {
+        current = sections[sections.length - 1].getAttribute('id');
+    } else {
+        sections.forEach(section => {
+            const sectionTop    = section.offsetTop - 120;
+            const sectionHeight = section.offsetHeight;
+            if (window.pageYOffset >= sectionTop && window.pageYOffset < sectionTop + sectionHeight) {
+                current = section.getAttribute('id');
+            }
+        });
+    }
+
+    navAnchors.forEach(link => {
         link.classList.remove('active');
         if (link.getAttribute('href') === `#${current}`) {
             link.classList.add('active');
         }
     });
+}
+
+// Run immediately on load so the first section is highlighted
+updateActiveNav();
+window.addEventListener('scroll', updateActiveNav, { passive: true });
+
+
+/* =============================================
+   Scroll-triggered Animations (IntersectionObserver)
+   ============================================= */
+const animateEls = document.querySelectorAll(
+    'section, .project-card, .skill-category, .stat-card, .contact-card, .timeline-item'
+);
+
+animateEls.forEach(el => el.classList.add('js-animate'));
+
+const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+        } else {
+            entry.target.classList.remove('visible');
+        }
+    });
+}, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+
+animateEls.forEach(el => observer.observe(el));
+
+
+/* =============================================
+   Animated Counters for Stat Cards
+   ============================================= */
+function animateCounter(el, duration = 1800) {
+    const target     = parseFloat(el.dataset.target);
+    const hasPlus    = el.dataset.hasPlus === 'true';
+    let startTime    = null;
+
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        const eased    = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+        const current  = Math.round(eased * target);
+        el.textContent = current + (hasPlus ? '+' : '');
+        if (progress < 1) requestAnimationFrame(step);
+        else el.textContent = target + (hasPlus ? '+' : ''); // ensure exact final value
+    }
+    requestAnimationFrame(step);
+}
+
+// Store targets, show 0 initially
+const statNumbers = document.querySelectorAll('.stat-number');
+statNumbers.forEach(el => {
+    const raw = el.textContent.trim();
+    if (raw === '∞') return; // skip infinity
+    el.dataset.target  = parseFloat(raw);
+    el.dataset.hasPlus = raw.includes('+');
+    el.textContent     = '0' + (raw.includes('+') ? '+' : '');
 });
 
-// Add active state style
-const style = document.createElement('style');
-style.textContent = `
-    .nav-links a.active {
-        color: var(--accent-secondary) !important;
-    }
-    
-    .nav-links a.active::after {
-        width: 100%;
-    }
-    
-    .nav-toggle.active span:nth-child(1) {
-        transform: rotate(45deg) translate(5px, 5px);
-    }
-    
-    .nav-toggle.active span:nth-child(2) {
-        opacity: 0;
-    }
-    
-    .nav-toggle.active span:nth-child(3) {
-        transform: rotate(-45deg) translate(7px, -6px);
-    }
-    
-    @media (max-width: 968px) {
-        .nav-links.active {
-            display: flex;
-            flex-direction: column;
-            position: absolute;
-            top: 70px;
-            left: 0;
-            right: 0;
-            background: var(--bg-secondary);
-            padding: 2rem;
-            border-bottom: 1px solid var(--border-color);
-            gap: 1.5rem;
+const counterObs = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+        if (entry.isIntersecting && entry.target.dataset.target) {
+            animateCounter(entry.target);
+        } else if (!entry.isIntersecting && entry.target.dataset.target) {
+            // Reset to 0 so it re-animates next time
+            const hasPlus = entry.target.dataset.hasPlus === 'true';
+            entry.target.textContent = '0' + (hasPlus ? '+' : '');
         }
-    }
-    
-    .code-line {
-        display: block;
-        animation: fadeIn 0.5s ease forwards;
-        opacity: 0;
-    }
-    
-    @keyframes fadeIn {
-        to {
-            opacity: 1;
-        }
-    }
-`;
-document.head.appendChild(style);
+    });
+}, { threshold: 0.6 });
 
-// Console easter egg
+statNumbers.forEach(el => counterObs.observe(el));
+
+
+/* =============================================
+   Typewriter Effect on Hero Title
+   ============================================= */
+const titleEl   = document.querySelector('.title');
+const titleText = 'Software Engineer';
+
+if (titleEl) {
+    titleEl.textContent = '';
+    const cursor = document.createElement('span');
+    cursor.classList.add('cursor');
+    cursor.setAttribute('aria-hidden', 'true');
+    titleEl.appendChild(cursor);
+
+    let i = 0;
+    function typeWriter() {
+        if (i < titleText.length) {
+            cursor.insertAdjacentText('beforebegin', titleText[i]);
+            i++;
+            setTimeout(typeWriter, 60);
+        }
+    }
+    setTimeout(typeWriter, 700);
+}
+
+
+/* =============================================
+   Code Block Line Fade-in Animation
+   ============================================= */
+const codeElement = document.querySelector('.code-block code');
+if (codeElement) {
+    const lines = codeElement.innerHTML.split('\n');
+    codeElement.innerHTML = lines
+        .map((line, index) =>
+            `<span class="code-line" style="animation-delay: ${index * 0.1}s">${line}</span>`
+        )
+        .join('\n');
+}
+
+
+/* =============================================
+   Console Easter Egg
+   ============================================= */
 console.log('%c Hello, Developer! 👋', 'font-size: 20px; font-weight: bold; color: #7c3aed;');
 console.log('%c Interested in how this was built? Check out the source code!', 'font-size: 12px; color: #a1a1aa;');
