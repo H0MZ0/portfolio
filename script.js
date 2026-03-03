@@ -139,9 +139,9 @@ function animateCounter(el, duration = 1800) {
         const progress = Math.min((timestamp - startTime) / duration, 1);
         const eased    = 1 - Math.pow(1 - progress, 3); // ease-out cubic
         const current  = Math.round(eased * target);
-        el.textContent = current + (hasPlus ? '+' : '');
+        el.textContent = (hasPlus ? '+' : '') + current;
         if (progress < 1) requestAnimationFrame(step);
-        else el.textContent = target + (hasPlus ? '+' : ''); // ensure exact final value
+        else el.textContent = (hasPlus ? '+' : '') + target; // ensure exact final value
     }
     requestAnimationFrame(step);
 }
@@ -150,20 +150,29 @@ function animateCounter(el, duration = 1800) {
 const statNumbers = document.querySelectorAll('.stat-number');
 statNumbers.forEach(el => {
     const raw = el.textContent.trim();
-    if (raw === '∞') return; // skip infinity
-    el.dataset.target  = parseFloat(raw);
+    if (raw === '∞' || el.querySelector('svg')) return; // skip infinity
+    el.dataset.target  = parseFloat(raw.replace('+', ''));
     el.dataset.hasPlus = raw.includes('+');
-    el.textContent     = '0' + (raw.includes('+') ? '+' : '');
+    el.textContent     = (raw.includes('+') ? '+' : '') + '0';
 });
 
 const counterObs = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
-        if (entry.isIntersecting && entry.target.dataset.target) {
-            animateCounter(entry.target);
-        } else if (!entry.isIntersecting && entry.target.dataset.target) {
-            // Reset to 0 so it re-animates next time
-            const hasPlus = entry.target.dataset.hasPlus === 'true';
-            entry.target.textContent = '0' + (hasPlus ? '+' : '');
+        const inkLine = entry.target.querySelector('.ink-line');
+        if (entry.isIntersecting) {
+            if (inkLine) {
+                inkLine.classList.add('animate');
+            } else if (entry.target.dataset.target) {
+                animateCounter(entry.target);
+            }
+        } else {
+            if (inkLine) {
+                inkLine.classList.remove('animate');
+            } else if (entry.target.dataset.target) {
+                // Reset to 0 so it re-animates next time
+                const hasPlus = entry.target.dataset.hasPlus === 'true';
+                entry.target.textContent = (hasPlus ? '+' : '') + '0';
+            }
         }
     });
 }, { threshold: 0.6 });

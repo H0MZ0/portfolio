@@ -361,6 +361,31 @@ section {
     font-size: 0.9rem;
 }
 
+/* Infinity animation */
+.infinity-svg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.ink-line {
+    fill: none;
+    stroke: url(#infinity-gradient);
+    stroke-width: 12;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 260;
+    stroke-dashoffset: 260;
+}
+
+.ink-line.animate {
+    animation: draw 2.5s ease-in-out forwards;
+}
+
+@keyframes draw {
+    0% { stroke-dashoffset: 260; }
+    100% { stroke-dashoffset: 0; }
+}
+
 /* Skills Section */
 .skills-grid {
     display: grid;
